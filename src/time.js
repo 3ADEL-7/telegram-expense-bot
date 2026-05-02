@@ -82,5 +82,6 @@ module.exports = {
   getLocalDateKey,
   getLocalMonthKey,
   getLocalWeekKey,
-  getWeekStartDateKey
+  getWeekStartDateKey,
+  shiftDateKey
 };
