@@ -245,26 +245,19 @@ class Storage {
   resetExpenseCounter(chatId) {
     this.ensureLoaded();
     const normalizedChatId = String(chatId);
-    const expenses = this.state.expenses
-      .filter((expense) => expense.chatId === normalizedChatId)
-      .sort((left, right) => {
-        if (left.createdAt === right.createdAt) {
-          return left.recordId - right.recordId;
-        }
+    const removedCount = this.state.expenses.filter(
+      (expense) => expense.chatId === normalizedChatId
+    ).length;
 
-        return left.createdAt.localeCompare(right.createdAt);
-      });
-
-    for (let index = 0; index < expenses.length; index += 1) {
-      expenses[index].id = index + 1;
-    }
-
-    this.state.nextExpenseIds[normalizedChatId] = expenses.length + 1;
+    this.state.expenses = this.state.expenses.filter(
+      (expense) => expense.chatId !== normalizedChatId
+    );
+    this.state.nextExpenseIds[normalizedChatId] = 1;
     this.save();
 
     return {
-      count: expenses.length,
-      nextId: expenses.length + 1
+      count: removedCount,
+      nextId: 1
     };
   }
 

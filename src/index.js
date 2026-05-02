@@ -383,7 +383,7 @@ async function handleResetCounterCommand(client, chatId) {
     client,
     chatId,
     [
-      "سيتم إعادة ترقيم كل مصاريفك الحالية من 1 بشكل متسلسل.",
+      "سيتم حذف كل مصاريفك الحالية وتصفير العداد لهذا المستخدم.",
       "أرسل: نعم",
       "أو أرسل أي شيء آخر للإلغاء."
     ].join("\n")
@@ -445,8 +445,8 @@ async function handleAwaitingState(client, chatId, text, state) {
       client,
       chatId,
       [
-        `تمت إعادة ترقيم ${result.count} عملية.`,
-        `أول رقم جديد للإضافة القادمة هو #${result.nextId}.`
+        `تم حذف ${result.count} عملية من سجلك.`,
+        `تم تصفير العداد، وأول مصروف جديد سيكون رقمه #${result.nextId}.`
       ].join("\n")
     );
     return true;
