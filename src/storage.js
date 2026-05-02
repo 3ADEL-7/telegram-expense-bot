@@ -8,6 +8,22 @@ class Storage {
     this.state = null;
   }
 
+  buildNextExpenseIds(expenses) {
+    const nextExpenseIds = {};
+
+    for (const expense of expenses) {
+      const chatId = String(expense.chatId);
+      const expenseId = Number(expense.id) || 0;
+      const nextId = expenseId + 1;
+
+      if (!nextExpenseIds[chatId] || nextExpenseIds[chatId] < nextId) {
+        nextExpenseIds[chatId] = nextId;
+      }
+    }
+
+    return nextExpenseIds;
+  }
+
   ensureLoaded() {
     if (this.state) {
       return;
@@ -23,19 +39,26 @@ class Storage {
 
     const raw = fs.readFileSync(this.filePath, "utf8");
     const parsed = JSON.parse(raw);
+    const expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+    const nextExpenseIds =
+      parsed.nextExpenseIds && typeof parsed.nextExpenseIds === "object"
+        ? parsed.nextExpenseIds
+        : this.buildNextExpenseIds(expenses);
 
     this.state = {
       lastUpdateId: Number(parsed.lastUpdateId || 0),
-      nextExpenseId: Number(parsed.nextExpenseId || 1),
-      expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
+      nextExpenseIds,
+      expenses,
       chatStates: parsed.chatStates && typeof parsed.chatStates === "object" ? parsed.chatStates : {}
     };
+
+    this.save();
   }
 
   createInitialState() {
     return {
       lastUpdateId: 0,
-      nextExpenseId: 1,
+      nextExpenseIds: {},
       expenses: [],
       chatStates: {}
     };
@@ -60,10 +83,12 @@ class Storage {
 
   addExpense(expense) {
     this.ensureLoaded();
+    const normalizedChatId = String(expense.chatId);
+    const nextExpenseId = Number(this.state.nextExpenseIds[normalizedChatId] || 1);
 
     const item = {
-      id: this.state.nextExpenseId++,
-      chatId: String(expense.chatId),
+      id: nextExpenseId,
+      chatId: normalizedChatId,
       amount: Number(expense.amount),
       note: expense.note || "",
       createdAt: expense.createdAt || new Date().toISOString(),
@@ -72,6 +97,7 @@ class Storage {
       localMonthKey: expense.localMonthKey
     };
 
+    this.state.nextExpenseIds[normalizedChatId] = nextExpenseId + 1;
     this.state.expenses.push(item);
     this.save();
     return item;
